@@ -1,3 +1,7 @@
+/**
+ * @author Luis Diego Sierra, Salvador Recinos, Carlos Solórzano
+ * @since 14/11/2016
+ */
 import java.io.File;
 import java.util.Vector;
 import org.neo4j.graphdb.GraphDatabaseService;

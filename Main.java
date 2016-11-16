@@ -1,3 +1,8 @@
+/**
+ * @author Luis Diego Sierra, Salvador Recinos, Carlos Solórzano
+ * @since 14/11/2016
+ */
+
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -6,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Vector;
 import javax.swing.BorderFactory;
@@ -29,10 +35,7 @@ public class Main {
 	// Vectores
 	private static Vector<Node> men = new Vector<Node>();
 	private static Vector<Node> women = new Vector<Node>();
-	private static Vector<Node> books = new Vector<Node>();
-	private static Vector<Node> music = new Vector<Node>();
-	private static Vector<Node> series = new Vector<Node>();
-	private static Vector<Node> movies = new Vector<Node>();
+	private static Vector<Person> found = null;
 	
 	// Componentes GUI
 	private static JTextField lblUser, lblMusic, lblBooks,
@@ -375,11 +378,6 @@ public class Main {
 	public static void main(String[] args) {
 		Main window = new Main();
 		window.showWindow();
-		Vector<Person> results = new Vector<Person>();
-		Vector<String> mResults = new Vector<String>();
-		Vector<String> muResults = new Vector<String>();
-		Vector<String> sResults = new Vector<String>();
-		Vector<String> bResults = new Vector<String>();
 		String books = "";
 		String music = "";
 		String series = "";
@@ -387,16 +385,7 @@ public class Main {
 		db = new DBGenerator("SoulDB");
 		try (Transaction tx = db.trans()) {
 			men = db.getNodes("GENRE", "M");
-			women = db.getNodes("GENRE", "F");
-			//books = db.getNodes("TYPE", "BOOKS");
-			//music = db.getNodes("TYPE", "MUSIC");
-			//series = db.getNodes("TYPE", "SERIES");
-			//movies = db.getNodes("TYPE", "MOVIES");
-			// Añade las personas resultado al vector
-			for (int i = 0; i < men.size(); i++) {
-				results.add(new Person(men.get(i)));
-			}
-			
+			women = db.getNodes("GENRE", "F");			
 			
 			tx.success();
 			JOptionPane.showMessageDialog(frame, "Se ha realizado la conexion con la base de datos");
@@ -422,7 +411,7 @@ public class Main {
 			btnNext.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					String[] get = getRelationships(results, increaseIndex(results.size()));
+					String[] get = getRelationships(found, increaseIndex(maxNumber));
 					if (get != null) {
 						lblUser.setText(get[0]);
 						lblBooks.setText(get[1]);
@@ -437,7 +426,7 @@ public class Main {
 			btnPrevious.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					String[] get = getRelationships(results, decreaseIndex(results.size()));
+					String[] get = getRelationships(found, decreaseIndex(maxNumber));
 					if (get != null) {
 						lblUser.setText(get[0]);
 						lblBooks.setText(get[1]);
@@ -454,8 +443,6 @@ public class Main {
 				public void actionPerformed(ActionEvent e) {
 					if (btnSearch.getText().equals("Buscar")) {
 						btnSearch.setText("Nueva búsqueda");
-						btnNext.setEnabled(true);
-						btnPrevious.setEnabled(true);
 						checkMan.setEnabled(false);
 						checkWoman.setEnabled(false);
 						txtPMusic.setEnabled(false);
@@ -474,14 +461,20 @@ public class Main {
 								txtPMusic.getText().toUpperCase(),
 								txtPSeries.getText().toUpperCase(),
 								txtPMovies.getText().toUpperCase()};
-						Vector<Person> found = setWeights(values);
-						maxNumber = found.size();
-						String[] results = getRelationships(found, index = 0);
-						lblUser.setText(results[0]);
-						lblBooks.setText(results[1]);
-						lblMusic.setText(results[2]);
-						lblSeries.setText(results[3]);
-						lblMovies.setText(results[4]);
+						found = setWeights(values);
+						if (found.size() != 0) {
+							maxNumber = found.size();
+							String[] results = getRelationships(found, 0);
+							lblUser.setText(results[0]);
+							lblBooks.setText(results[1]);
+							lblMusic.setText(results[2]);
+							lblSeries.setText(results[3]);
+							lblMovies.setText(results[4]);
+							btnNext.setEnabled(true);
+							btnPrevious.setEnabled(true);
+						} else {
+							JOptionPane.showMessageDialog(frame, "No se encontraron resultados");
+						}
 					} else {
 						btnSearch.setText("Buscar");
 						btnNext.setEnabled(false);
@@ -551,7 +544,6 @@ public class Main {
 									n = db.createNode(value, types[i-1], labels[i-1]);	
 								}
 								db.createRelationship(node, n, relationships[i-1]);
-								JOptionPane.showMessageDialog(frame, "Se ha creado la relación");
 							}
 						}
 					}
@@ -560,6 +552,14 @@ public class Main {
 					txtABooks.setText("");
 					txtASeries.setText("");
 					txtAMovies.setText("");
+					String user = "";
+					try (Transaction tx = db.trans()) {
+						user = (new Person(node)).getUser();
+						tx.success();
+					}
+					JOptionPane.showMessageDialog(frame, "Se ha agregado el usuario " + user);
+					men = db.getNodes("GENRE", "M");
+					women = db.getNodes("GENRE", "F");
 				}
 			});
 			
@@ -578,6 +578,8 @@ public class Main {
 							JOptionPane.showMessageDialog(frame, "Se ha eliminado el usuario " + 
 						user);
 							txtDUser.setText("");
+							men = db.getNodes("GENRE", "M");
+							women = db.getNodes("GENRE", "F");
 							return;
 						}
 					}
@@ -602,7 +604,8 @@ public class Main {
 			Person per = vector.get(index);
 			Node node = per.getNode();
 			Iterator<Relationship> iterator = node.getRelationships().iterator();
-			results[0] = per.getName();
+			results[0] = per.getUser() + ", " + 
+			(per.getNode().getProperty("GENRE").equals("F") ? "MUJER" : "HOMBRE");
 			while (iterator.hasNext()){
 				Node e = iterator.next().getEndNode();
 				String type = (String)e.getProperty("TYPE");
@@ -659,10 +662,6 @@ public class Main {
 	private static Vector<Person> setWeights(String[] values) {
 		Vector<Person> pers = new Vector<Person>();
 		Vector<Person> full = new Vector<Person>();
-		String[] books = values[1].split(", ");
-		String[] music = values[2].split(", ");
-		String[] series = values[3].split(", ");
-		String[] movies = values[4].split(", ");
 		if (values[0].equals("M")) {
 			 for (int i = 0; i < men.size(); i++) {
 				 full.add(new Person(men.get(i)));
@@ -675,7 +674,6 @@ public class Main {
 			for (int i = 0; i < men.size(); i++) {
 				 full.add(new Person(men.get(i)));
 			 }
-			
 			for (int i = 0; i < women.size(); i++) {
 				full.add(new Person(women.get(i)));
 			}
@@ -683,9 +681,24 @@ public class Main {
 		for (int i = 0; i < full.size(); i++) {
 			String[] relations = getRelationships(full, i);
 			for (int j = 1; j < relations.length; j++) {
-				
+				if (!(relations[j].equals("") || values[j].equals(""))){
+					String[] rel = relations[j].substring(0, relations[j].length()).split(", ");
+					String[] val = values[j].split(",");
+					for (int k = 0; k < rel.length; k++) {
+						for (int l = 0; l < val.length; l++) {
+							if (val[l].equals(rel[k])) {
+								full.get(i).incOccurrences();
+							}
+						}
+					}
+				}
+			}
+			if (full.get(i).getOcurrences() != -1) {
+				pers.add(full.get(i));
 			}
 		}
+		Collections.sort(pers);
+		System.out.println("Pers: " + pers.size());
 		return pers;
 	}
 }

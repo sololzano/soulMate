@@ -1,12 +1,9 @@
 /**
- * 
+ * @author Luis Diego Sierra, Salvador Recinos, Carlos Solórzano
+ * @since 14/11/2016
  */
 import org.neo4j.graphdb.Node;
-/**
- * @author Hp
- *
- */
-public class Person {
+public class Person implements Comparable<Person>{
 
 	private Node node;
 	private int occurrences;
@@ -53,6 +50,11 @@ public class Person {
 	 */
 	public Node getNode() {
 		return this.node;
+	}
+
+	@Override
+	public int compareTo(Person person) {
+		return (person.getOcurrences() - this.getOcurrences());
 	}
 
 }
