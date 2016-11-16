@@ -1,8 +1,9 @@
 import java.io.File;
 import java.util.Vector;
-
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
@@ -55,16 +56,40 @@ public class DBGenerator {
 		Node node;
 		try (Transaction tx = trans()) {
 			for (int i = 0; i < 10000; i++) {
-				node = db.getNodeById(i);
-				String value = (String)node.getProperty(key);
-				if (value.equals(val)) {
-					tx.success();
-					return node;
+				try {
+					node = db.getNodeById(i);
+					String value = (String)node.getProperty(key);
+					if (value.equals(val.toUpperCase())) {
+						node = db.getNodeById(i);
+						tx.success();
+						return node;
+					}
+				} catch (Exception e) {
+					
 				}
 			}
 			tx.success();
 		}
 		return null;
+	}
+	
+	/**
+	 * 
+	 * @param node Nodo a eliminar
+	 */
+	public boolean deleteNode(Node node) {
+		try {
+			Transaction tx = trans();
+			Iterable<Relationship> iterator = node.getRelationships();
+			for (Relationship relation : iterator) {
+				relation.delete();
+			}
+			node.delete();
+			tx.success();
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 	
 	/**
@@ -78,11 +103,35 @@ public class DBGenerator {
 	/**
 	 * 
 	 */
-	public void createPerson(String name) {
-		Node node = db.createNode(Labels.Person);
-		node.setProperty("NAME", name.toUpperCase());		
+	public Node createPerson(String name, String genre) {
+		try (Transaction tx = trans()) {
+			Node node = db.createNode(Labels.Person);
+			node.setProperty("NAME", name.toUpperCase());
+			String id = name.substring(0, 3) + 
+					name.substring(name.length()-3) +
+					node.getId();
+			node.setProperty("USER", id);
+			node.setProperty("GENRE", genre);
+			tx.success();
+			return node;
+		}
 	}
 	
+	/**
+	 * 
+	 * @param name
+	 * @param type
+	 * @param label
+	 */
+	public Node createNode(String name, String type, Label label) {
+		try (Transaction tx = trans()) {
+			Node node = db.createNode(label);
+			node.setProperty("name", name);
+			node.setProperty("TYPE", type);
+			tx.success();
+			return node;
+		}
+	}
 	/**
 	 * 
 	 * @param origin
@@ -95,5 +144,4 @@ public class DBGenerator {
 			tx.success();
 		}
 	}
-
 }
