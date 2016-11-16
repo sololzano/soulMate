@@ -65,7 +65,7 @@ public class Main {
 	private static DBGenerator db;
 	
 	/**
-	 * Constructor
+	 * Construye una ventana
 	 */
 	public Main () {
 		frame = new JFrame("ChafaTinder");
@@ -77,7 +77,7 @@ public class Main {
 	}
 	
 	/**
-	 * 
+	 * Crea el GUI
 	 */
 	private void showWindow() {
 		// Estilos de fuentes
@@ -525,6 +525,7 @@ public class Main {
 							data[3].equals("") && data[4].equals("")) {
 						JOptionPane.showMessageDialog(frame, "Debe ingresar al "
 								+ "menos uno de los campos");
+						return;
 					}
 					String[] collect;
 					String[] types = {"BOOKS", "MUSIC", "SERIES", "MOVIES"};
@@ -629,8 +630,8 @@ public class Main {
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * @param maxIndex El número máximo de coincidencias en la búsqueda
+	 * @return Índice más uno
 	 */
 	private static int increaseIndex(int maxIndex) {
 		if (index < maxIndex - 1) {
@@ -643,8 +644,8 @@ public class Main {
 	
 	/**
 	 * 
-	 * @param maxIndex
-	 * @return
+	 * @param maxIndex El número máximo de coincidencias en la búsqueda
+	 * @return Índic menos uno
 	 */
 	private static int decreaseIndex(int maxIndex) {
 		if (index == 0) {
@@ -657,7 +658,8 @@ public class Main {
 	
 	/**
 	 * 
-	 * @param values
+	 * @param values 0 = User, 1 = Libros, 2 = Música, 3 = Series, 4 = Películas
+	 * @return El vector ordenado de coincidencias en la búsqueda
 	 */
 	private static Vector<Person> setWeights(String[] values) {
 		Vector<Person> pers = new Vector<Person>();
@@ -693,7 +695,7 @@ public class Main {
 					}
 				}
 			}
-			if (full.get(i).getOcurrences() != -1) {
+			if (full.get(i).getOcurrences() != 0) {
 				pers.add(full.get(i));
 			}
 		}

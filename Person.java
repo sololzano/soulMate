@@ -10,7 +10,7 @@ public class Person implements Comparable<Person>{
 	
 	public Person(Node node) {
 		this.node = node;
-		occurrences = -1;
+		occurrences = 0;
 	}
 	
 	/**

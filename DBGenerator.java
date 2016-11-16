@@ -18,6 +18,11 @@ public class DBGenerator {
 	private GraphDatabaseFactory factory;
 	private GraphDatabaseService db;
 	
+	/**
+	 * 
+	 * @param name Ruta de la base de datos
+	 * Construye o abre una base de datos
+	 */
 	public DBGenerator(String name) {
 		factory = new GraphDatabaseFactory();
 		database = new File(name);
@@ -26,9 +31,9 @@ public class DBGenerator {
 	
 	/**
 	 * 
-	 * @param key
-	 * @param val
-	 * @return
+	 * @param key La clave del nodo
+	 * @param val El valor del nodo
+	 * @return Los nodos coincidentes
 	 */
 	public Vector<Node> getNodes(String key, String val) {
 		Node node;
@@ -52,9 +57,9 @@ public class DBGenerator {
 	
 	/**
 	 * 
-	 * @param key
-	 * @param val
-	 * @return
+	 * @param key La clave del nodo
+	 * @param val El valor del nodo
+	 * @return El nodo encontrado
 	 */
 	public Node getNode(String key, String val) {
 		Node node;
@@ -80,6 +85,7 @@ public class DBGenerator {
 	/**
 	 * 
 	 * @param node Nodo a eliminar
+	 * @return true Si se pudo eliminar
 	 */
 	public boolean deleteNode(Node node) {
 		try {
@@ -98,7 +104,7 @@ public class DBGenerator {
 	
 	/**
 	 * 
-	 * @return
+	 * @return Transacción iniciada
 	 */
 	public Transaction trans() {
 		return db.beginTx();
@@ -106,6 +112,9 @@ public class DBGenerator {
 	
 	/**
 	 * 
+	 * @param name El nombre de la persona
+	 * @param genre F = femenino, M = masculino
+	 * @return La persona creada
 	 */
 	public Node createPerson(String name, String genre) {
 		try (Transaction tx = trans()) {
@@ -123,9 +132,10 @@ public class DBGenerator {
 	
 	/**
 	 * 
-	 * @param name
-	 * @param type
-	 * @param label
+	 * @param name El nombre del nodo
+	 * @param type El tipo del nodo
+	 * @param label La etiqueta del nodo
+	 * @return El nodo creado
 	 */
 	public Node createNode(String name, String type, Label label) {
 		try (Transaction tx = trans()) {
@@ -138,9 +148,9 @@ public class DBGenerator {
 	}
 	/**
 	 * 
-	 * @param origin
-	 * @param destiny
-	 * @param relationship
+	 * @param origin Nodo origen
+	 * @param destiny Nodo destino
+	 * @param relationship El tipo de relación implementada
 	 */
 	public void createRelationship(Node origin, Node destiny, RelationshipType relationship) {
 		try (Transaction tx = trans()) {
